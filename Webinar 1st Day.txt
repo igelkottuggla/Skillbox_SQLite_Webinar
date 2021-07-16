@@ -1,0 +1,161 @@
+--выбор всех покупателей
+select *
+from customers
+
+--выбор покупателя с ID равному 1
+select *
+from customers
+where CustomerId=1
+
+--выбор музыкальных треков с ценой меньше 1
+select *
+from tracks
+where UnitPrice<1
+
+--выбор музыкальных треков с ценой больше 1
+select Name, UnitPrice
+from tracks
+where UnitPrice>1
+
+--выбор названий музыкальных треков и их цен с ценой больше 1 и менше 2
+select Name, UnitPrice
+from tracks
+where UnitPrice>1 and UnitPrice<2
+
+--выбор названий музыкальных треков и их цен с ценой не равной 0.99
+select Name, UnitPrice
+from tracks
+where UnitPrice<>0.99
+
+--выбор музыкальных треков, название которых содержит слово night
+select * 
+from tracks
+where name like '%night%'
+
+--выбор музыкальных треков, название которых НЕ содержит слово night
+select * 
+from tracks
+where name not like '%night%'
+
+--выбор музыкального трека с названием Snowballed
+select * 
+from tracks
+where name = 'Snowballed'
+
+--выбор музыкальных треков с ID равными 1 и 2
+from tracks
+where trackId = 1 or trackId = 2
+
+--выбор музыкальных треков с композитром AC/DC и ценой больше 0.99
+select * 
+from tracks
+where Composer = 'AC/DC' and unitPrice > 0.5
+
+--отображение жанров музыкальных треков
+select * from genres
+
+--отображение имени и фамилии работников
+select LastName, FirstName
+from employees
+
+--отображение имени и фамилии работников с объединением их в новую колонку "полное имя"
+select LastName, FirstName, LastName || ' ' || FirstName as FullName
+from employees
+
+--расчет стоимости цены музыкальных треков без НДС
+select name, UnitPrice, (UnitPrice *0.20 + UnitPrice) as PriceWithoutTax
+from tracks 
+
+--отображение полного имени клиентов и их адреса (+ проверка полей адреса на содержание значения)
+select LastName || ' ' || FirstName as FullName, Address||', '|| ifnull(City, '') ||', '||ifnull(State, '') ||', '|| ifnull(Country, '') ||', '|| ifnull(PostalCode, '') as FullAddress
+from customers
+
+--отображение продаж, соевршенных в промежуток между 1 января 2010 года и 1 января 2011 года
+select *
+from sales 
+where SalesDate>= date('2010-01-01')  and SalesDate < date('2011-01-01')
+
+--даты продаж (с ч/м/с, отображение только дат продаж, отображение только времени продаж, округление даты до начала года, округление даты до начала месяца), которые входят в промежуток между 01.01.2010 и 01.01.2011 
+select SalesDate, date(salesDate), time(salesDate),date(salesDate, 'start of year'), date(salesDate, 'start of month'), datetime(salesDate)
+from sales
+where SalesDate>= date('2010-01-01')  and SalesDate < date('2011-01-01')
+
+
+--округленная дата продажи 01.01.2010
+select SalesDate
+,date(salesDate, 'start of year')
+, date(salesDate, 'start of month')
+from sales
+where date(salesDate, 'start of year') = date('2010-01-01')
+
+--округленные даты продаж с разбивкой на года, месцы и дни (при условии, что день продажи больше чем 5)
+select SalesDate
+,date(salesDate, 'start of year')
+, date(salesDate, 'start of month')
+,strftime('%Y', salesDate)
+,strftime('%m', salesDate),
+strftime( '%d', salesDate)
+from sales
+where strftime('%d', salesDate) > 5
+
+--подсчет возраста, в котором работники были приняты в штат
+select FirstName, LastName, FirstName ||' '|| LastName as FullName, strftime('%Y', HireDate)  - strftime('%Y', BirthDate)
+from employees
+
+--продажи, совершенные между 01.01.2011 и 15.05.2011 (больше или равно и строго меньше)
+select *
+from sales 
+where date(salesDate, 'start of month') between date('2011-01-01') and date ('2011-05-15')
+
+--продажи, где округленная дата до начала месяца находится в сентябре, октрябре и ноябре 2010 года
+select *
+from sales 
+where date(salesDate, 'start of month') in ( date('2010-09-01'), date ('2010-10-01'), date('2010-11-01')) 
+
+--подсчет количества строк в таблице музкальных треков
+select count(*)
+from tracks
+
+--выбор треков, вес которых больше 7 МБ
+select *
+from tracks
+where Bytes>7*1048576
+
+--выбор треков, вес которых меньше 7 МБ
+select *
+from tracks
+where Bytes<7*1048576
+
+select *
+from tracks
+where Bytes=7*1048576
+
+--выбор треков вес которых равен NuLL  
+select * from tracks where Bytes is null
+--не равен NULL
+select * from tracks where Bytes is not null
+
+--отображение стран покупателей с исключением повторяющихся стран
+select distinct country from customers
+
+--группировка количества покупателей по странам
+select country, count(*) 
+from customers 
+group by country
+
+--Подсчет уникального количества городов, в готорых живут клиенты
+select country, count(*), count( distinct city) 
+from customers 
+group by country
+
+--У какого композитора самый дорогой музыкальный трек? самый дешевый музыкальный трек?
+--asc - от меньшего к большему
+--desc - от большего к меньшеум
+select Composer, max(UnitPrice), min(UnitPrice)
+--, avg(UnitPrice)
+from tracks
+group by Composer
+--order by max(UnitPrice) desc limit 1 -- выбор 1 композитора с максимальной ценой
+--order by min(UnitPrice) desc limit 1 -- выбор 1 композитора с минимальной ценой
+
+having avg(UnitPrice) > 1 --фильтрация после группировки: средняя цена муз трека больше 1
